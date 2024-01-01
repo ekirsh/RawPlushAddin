@@ -19,7 +19,14 @@ app.get('/artists', async (req, res) => {
     await client.connect();
     const database = client.db('spotify_data'); // replace 'mydb' with your database name
     const artists = database.collection('artists');
-    const data = await artists.find().toArray();
+    const data = await artists
+    .find()
+    .sort({
+      playlist_count: -1, // Sort playlist_count in descending order
+      artist_followers: 1, // Sort artist_followers in ascending order
+      popularity: 1 // Sort popularity in ascending order
+    })
+    .toArray();
     res.json(data);
     client.close();
   });
