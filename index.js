@@ -1,5 +1,6 @@
 const express = require('express');
 const mongodb = require('mongodb');
+const { spawn } = require('child_process');
 var cors = require('cors')
 const app = express();
 const port = 3001;
@@ -32,6 +33,26 @@ app.get('/artists', async (req, res) => {
     res.json(data);
     client.close();
   });
+
+app.get('/ai', (req, res) => {
+  const artistName = req.query.name;
+  const python = spawn('python', ['./testing.py', artistName]);
+
+  python.stdout.on('data', (data) => {
+    console.log(`stdout: ${data}`);
+  });
+
+  python.stderr.on('data', (data) => {
+      console.error(`stderr: ${data}`);
+  });
+
+  python.on('close', (code) => {
+      console.log(`child process exited with code ${code}`);
+  });
+
+  
+  res.json(data);
+});
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`)
