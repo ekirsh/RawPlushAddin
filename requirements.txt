@@ -1,5 +1,5 @@
 requests
-googlesearch
+google-search
 beautifulsoup4
 json
 trafilatura
