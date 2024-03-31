@@ -34,6 +34,18 @@ app.get('/artists', async (req, res) => {
     client.close();
   });
 
+app.get('/scanstatus', async (req, res) => {
+    const client = new MongoClient(url);
+    await client.connect();
+    const database = client.db('spotify_data'); // replace 'mydb' with your database name
+    const artists = database.collection('scan_status');
+    const data = await artists
+    .find({})
+    .toArray();
+    res.json(data);
+    client.close();
+  });
+
 app.get('/ai', (req, res) => {
   const artistName = req.query.name;
   const python = spawn('python', ['./testing.py', artistName]);
