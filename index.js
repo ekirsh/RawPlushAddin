@@ -34,6 +34,21 @@ app.get('/artists', async (req, res) => {
     client.close();
   });
 
+app.get('/tiktok', async (req, res) => {
+    const client = new MongoClient(url);
+    await client.connect();
+    const database = client.db('tiktok_data'); // replace 'mydb' with your database name
+    const artists = database.collection('artist_data');
+    const data = await artists
+    .find({})
+    .sort({
+      viewsPerDay: -1,
+    })
+    .toArray();
+    res.json(data);
+    client.close();
+  });
+
 app.get('/scanstatus', async (req, res) => {
     const client = new MongoClient(url);
     await client.connect();
