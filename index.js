@@ -22,7 +22,7 @@ app.get('/artists', async (req, res) => {
     const artists = database.collection('artists');
     const data = await artists
     .find({
-      playlist_count: { $gte: 2 } // Filter for playlist_count greater than or equal to 2
+      playlist_count: { $gte: 1 } // Filter for playlist_count greater than or equal to 2
     })
     .sort({
       playlist_count: -1, // Sort playlist_count in descending order
