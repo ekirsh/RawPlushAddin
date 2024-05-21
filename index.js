@@ -23,7 +23,7 @@ app.get('/artists', async (req, res) => {
     const data = await artists
     .find({})
     .sort({
-      artist_followers: 1, // Sort artist_followers in ascending order
+      popularity: -1, 
     })
     .toArray();
     res.json(data);
