@@ -30,6 +30,18 @@ app.get('/artists', async (req, res) => {
     client.close();
   });
 
+app.get('/instagram', async (req, res) => {
+    const client = new MongoClient(url);
+    await client.connect();
+    const database = client.db('instagram_data'); // replace 'mydb' with your database name
+    const artists = database.collection('users');
+    const data = await artists
+    .find({})
+    .toArray();
+    res.json(data);
+    client.close();
+  });
+
 app.get('/tiktok', async (req, res) => {
     const client = new MongoClient(url);
     await client.connect();
