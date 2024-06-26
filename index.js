@@ -22,9 +22,6 @@ app.get('/artists', async (req, res) => {
     const artists = database.collection('artists');
     const data = await artists
     .find({})
-    .sort({
-      popularity: -1, 
-    })
     .toArray();
     res.json(data);
     client.close();
