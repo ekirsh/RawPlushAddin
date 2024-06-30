@@ -44,7 +44,7 @@ app.get('/instagram', async (req, res) => {
     
     const client = new MongoClient(url);
     await client.connect();
-    const db = client.db('spotify_data'); 
+    const db = client.db('instagram_data'); 
     const collection = db.collection('users'); // Replace 'users' with your collection name
 
     const users = await collection.find()
