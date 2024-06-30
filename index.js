@@ -28,29 +28,61 @@ app.get('/artists', async (req, res) => {
   });
 
 app.get('/instagram', async (req, res) => {
-  const client = new MongoClient(url);
   try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 21;
+    const sort = req.query.sort || 'change_in_notable_followers';
+    
+    const skip = (page - 1) * limit;
+
+    let sortQuery = {};
+    if (sort === 'notable_followers') {
+      sortQuery = { notable_followers: -1 };
+    } else if (sort === 'first_date_tracked') {
+      sortQuery = { first_date_tracked: -1 };
+    }
+    
+    const client = new MongoClient(url);
     await client.connect();
-    const database = client.db('instagram_data');
-    const artists = database.collection('users');
+    const db = client.db('spotify_data'); 
+    const collection = db.collection('users'); // Replace 'users' with your collection name
 
-    const cursor = artists.find({});
-    cursor.on('data', (doc) => {
-      res.write(JSON.stringify(doc) + '\n');
+    const users = await collection.find()
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const processedUsers = users.map(user => {
+      const notableFollowersHistory = user.notable_followers_history;
+      const yesterdayDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
+      const currentDate = moment().format('YYYY-MM-DD');
+
+      const yesterdayData = notableFollowersHistory.find(history => history.date === yesterdayDate);
+      const currentData = notableFollowersHistory.find(history => history.date === currentDate) || notableFollowersHistory[notableFollowersHistory.length - 1];
+      const firstData = notableFollowersHistory[0];
+
+      let changeInNotableFollowers = 0;
+      if (yesterdayData && currentData) {
+        changeInNotableFollowers = currentData.notable_followers - yesterdayData.notable_followers;
+      } else if (firstData && currentData) {
+        changeInNotableFollowers = currentData.notable_followers - firstData.notable_followers;
+      }
+
+      return {
+        ...user,
+        change_in_notable_followers: changeInNotableFollowers
+      };
     });
 
-    cursor.on('end', () => {
-      res.end();
-      client.close();
-    });
+    if (sort === 'change_in_notable_followers') {
+      processedUsers.sort((a, b) => b.change_in_notable_followers - a.change_in_notable_followers);
+    }
 
-    cursor.on('error', (err) => {
-      res.status(500).json({ error: err.message });
-      client.close();
-    });
-
+    res.json(processedUsers);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching users:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
