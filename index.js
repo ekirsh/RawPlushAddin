@@ -28,16 +28,31 @@ app.get('/artists', async (req, res) => {
   });
 
 app.get('/instagram', async (req, res) => {
-    const client = new MongoClient(url);
+  const client = new MongoClient(url);
+  try {
     await client.connect();
-    const database = client.db('instagram_data'); // replace 'mydb' with your database name
+    const database = client.db('instagram_data');
     const artists = database.collection('users');
-    const data = await artists
-    .find({})
-    .toArray();
-    res.json(data);
-    client.close();
-  });
+
+    const cursor = artists.find({});
+    cursor.on('data', (doc) => {
+      res.write(JSON.stringify(doc) + '\n');
+    });
+
+    cursor.on('end', () => {
+      res.end();
+      client.close();
+    });
+
+    cursor.on('error', (err) => {
+      res.status(500).json({ error: err.message });
+      client.close();
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.get('/tiktok', async (req, res) => {
     const client = new MongoClient(url);
