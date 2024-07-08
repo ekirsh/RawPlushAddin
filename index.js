@@ -41,6 +41,8 @@ app.get('/instagram', async (req, res) => {
       sortQuery = { notable_followers: -1 };
     } else if (sort === 'first_date_tracked') {
       sortQuery = { first_date_tracked: -1 };
+    } else if (sort === 'change_in_notable_followers') {
+      sortQuery = { notable_follower_growth: -1 };
     }
     
     const client = new MongoClient(url);
@@ -54,33 +56,7 @@ app.get('/instagram', async (req, res) => {
       .limit(limit)
       .toArray();
 
-    const processedUsers = users.map(user => {
-      const notableFollowersHistory = user.notable_followers_history;
-      const yesterdayDate = moment().subtract(1, 'days').format('YYYY-MM-DD');
-      const currentDate = moment().format('YYYY-MM-DD');
-
-      const yesterdayData = notableFollowersHistory.find(history => history.date === yesterdayDate);
-      const currentData = notableFollowersHistory.find(history => history.date === currentDate) || notableFollowersHistory[notableFollowersHistory.length - 1];
-      const firstData = notableFollowersHistory[0];
-
-      let changeInNotableFollowers = 0;
-      if (yesterdayData && currentData) {
-        changeInNotableFollowers = currentData.notable_followers - yesterdayData.notable_followers;
-      } else if (firstData && currentData) {
-        changeInNotableFollowers = currentData.notable_followers - firstData.notable_followers;
-      }
-
-      return {
-        ...user,
-        change_in_notable_followers: changeInNotableFollowers
-      };
-    });
-
-    if (sort === 'change_in_notable_followers') {
-      processedUsers.sort((a, b) => b.change_in_notable_followers - a.change_in_notable_followers);
-    }
-
-    res.json(processedUsers);
+    res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Internal server error' });
