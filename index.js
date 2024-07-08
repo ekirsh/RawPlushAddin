@@ -34,6 +34,11 @@ app.get('/instagram', async (req, res) => {
     const limit = parseInt(req.query.limit) || 21;
     const sort = req.query.sort || 'change_in_notable_followers';
     
+    const filter = req.query.filter || '';
+    const filters = filter.split(',').filter(f => f);
+
+    const query = filters.length ? { 'following_list.username': { $in: filters } } : {};
+    
     const skip = (page - 1) * limit;
 
     let sortQuery = {};
@@ -50,7 +55,7 @@ app.get('/instagram', async (req, res) => {
     const db = client.db('instagram_data'); 
     const collection = db.collection('users'); // Replace 'users' with your collection name
 
-    const users = await collection.find()
+    const users = await collection.find(query)
       .sort(sortQuery)
       .skip(skip)
       .limit(limit)
