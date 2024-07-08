@@ -37,8 +37,8 @@ app.get('/instagram', async (req, res) => {
     const filter = req.query.filter || '';
     const filters = filter.split(',').filter(f => f);
     console.log(filters);
-    const query = filters.length ? { 'following_list.username': { $in: filters } } : {};
-    
+    const query = filters.length ? { 'follower_list.username': { $in: filters } } : {};
+
     const skip = (page - 1) * limit;
 
     let sortQuery = {};
