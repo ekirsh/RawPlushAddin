@@ -45,7 +45,7 @@ app.get('/instagram', async (req, res) => {
     if (sort === 'notable_followers') {
       sortQuery = { notable_followers: -1 };
     } else if (sort === 'first_date_tracked') {
-      sortQuery = { first_date_tracked: -1 };
+      sortQuery = { first_date_tracked: -1, notable_followers: -1 };
     } else if (sort === 'change_in_notable_followers') {
       sortQuery = { notable_follower_growth: -1 };
     }
