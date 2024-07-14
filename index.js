@@ -51,18 +51,33 @@ app.get('/instagram', async (req, res) => {
     const skip = (page - 1) * limit;
 
     let sortQuery = {};
+    let additionalQuery = {};
+
     if (sort === 'notable_followers') {
       sortQuery = { notable_followers: -1 };
     } else if (sort === 'first_date_tracked') {
       sortQuery = { first_date_tracked: -1, notable_followers: -1 };
+      additionalQuery = {
+        $and: [
+          { follower_list: { $exists: true } },
+          {
+            $nor: [
+              { 'follower_list': { $elemMatch: { first_time_tracked: 'y' } } }
+            ]
+          }
+        ]
+      };
     } else if (sort === 'change_in_notable_followers') {
       sortQuery = { notable_follower_growth: -1 };
     }
+
+    // Combine the original query with the additional query
+    const finalQuery = { ...query, ...additionalQuery };
     
     const db = client.db('instagram_data');
     const collection = db.collection('users');
 
-    const users = await collection.find(query)
+    const users = await collection.find(finalQuery)
       .sort(sortQuery)
       .skip(skip)
       .limit(limit)
