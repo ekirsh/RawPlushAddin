@@ -2,29 +2,32 @@ const express = require('express');
 const mongodb = require('mongodb');
 const { spawn } = require('child_process');
 const moment = require('moment');
-var cors = require('cors');
+var cors = require('cors')
 const app = express();
 const port = 3001;
 const MongoClient = mongodb.MongoClient;
-const url = "mongodb+srv://ezra:fbVFtTwornawziKT@cluster0.owft8n4.mongodb.net/?retryWrites=true&w=majority"; // replace with your MongoDB connection string
+const url = "mongodb+srv://ezra:fbVFtTwornawziKT@cluster0.owft8n4.mongodb.net/?retryWrites=true&w=majority";
 
-app.use(cors());
+app.use(cors())
 
 let client;
 
-async function connectToMongo() {
-  if (!client) {
+async function connectToDatabase() {
+  try {
     client = new MongoClient(url);
     await client.connect();
     console.log("Database connected!");
+  } catch (error) {
+    console.error("Failed to connect to the database:", error);
+    process.exit(1);
   }
 }
 
-connectToMongo().catch(console.error);
+connectToDatabase();
 
 app.get('/artists', async (req, res) => {
   try {
-    const database = client.db('spotify_data'); // replace 'mydb' with your database name
+    const database = client.db('spotify_data');
     const artists = database.collection('artists');
     const data = await artists.find({}).toArray();
     res.json(data);
@@ -52,13 +55,12 @@ app.get('/instagram', async (req, res) => {
       sortQuery = { notable_followers: -1 };
     } else if (sort === 'first_date_tracked') {
       sortQuery = { first_date_tracked: -1, notable_followers: -1 };
-      query['follower_list.first_time_tracked'] = { $ne: 'y' };
     } else if (sort === 'change_in_notable_followers') {
       sortQuery = { notable_follower_growth: -1 };
     }
-
-    const db = client.db('instagram_data'); 
-    const collection = db.collection('users'); // Replace 'users' with your collection name
+    
+    const db = client.db('instagram_data');
+    const collection = db.collection('users');
 
     const users = await collection.find(query)
       .sort(sortQuery)
@@ -75,21 +77,24 @@ app.get('/instagram', async (req, res) => {
 
 app.get('/tiktok', async (req, res) => {
   try {
-    const database = client.db('tiktok_data'); // replace 'mydb' with your database name
+    const database = client.db('tiktok_data');
     const artists = database.collection('artist_data');
-    const data = await artists.find({})
-      .sort({ viewsPerDay: -1 })
+    const data = await artists
+      .find({})
+      .sort({
+        viewsPerDay: -1,
+      })
       .toArray();
     res.json(data);
   } catch (error) {
-    console.error('Error fetching TikTok artists:', error);
+    console.error('Error fetching TikTok data:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
 
 app.get('/scanstatus', async (req, res) => {
   try {
-    const database = client.db('spotify_data'); // replace 'mydb' with your database name
+    const database = client.db('spotify_data');
     const artists = database.collection('scan_status');
     const data = await artists.find({}).toArray();
     res.json(data);
@@ -115,9 +120,16 @@ app.get('/ai', (req, res) => {
     console.log(`child process exited with code ${code}`);
   });
 
-  res.json({ message: 'Python script executed' });
+  res.json({ message: 'AI process started' });
 });
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
+});
+
+process.on('SIGINT', async () => {
+  console.log('Closing database connection...');
+  await client.close();
+  console.log('Database connection closed.');
+  process.exit(0);
 });
