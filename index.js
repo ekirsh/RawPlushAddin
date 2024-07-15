@@ -84,7 +84,8 @@ app.get('/instagram', async (req, res) => {
       .skip(skip)
       .limit(limit)
       .toArray();
-
+    
+    console.log(users);
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);
