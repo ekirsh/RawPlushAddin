@@ -73,6 +73,7 @@ app.get('/instagram', async (req, res) => {
 
     // Combine the original query with the additional query
     const finalQuery = { ...query, ...additionalQuery };
+    console.log(finalQuery)
     
     const db = client.db('instagram_data');
     const collection = db.collection('users');
