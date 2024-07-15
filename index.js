@@ -79,7 +79,7 @@ app.get('/instagram', async (req, res) => {
     const db = client.db('instagram_data');
     const collection = db.collection('users');
 
-    const users = await collection.find(finalQuery)
+    const users = await collection.find()
       .sort(sortQuery)
       .skip(skip)
       .limit(limit)
