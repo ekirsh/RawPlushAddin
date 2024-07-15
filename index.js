@@ -49,6 +49,7 @@ app.get('/instagram', async (req, res) => {
     const query = filters.length ? { 'follower_list.username': { $all: filters } } : {};
 
     const skip = (page - 1) * limit;
+    console.log(skip)
 
     let sortQuery = {};
     let additionalQuery = {};
