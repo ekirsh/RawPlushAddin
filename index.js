@@ -69,7 +69,7 @@ app.get('/instagram', async (req, res) => {
         ]
       };
     } else if (sort === 'change_in_notable_followers') {
-      sortQuery = { notable_follower_growth: -1 };
+      sortQuery = { notable_follower_growth_week: -1 };
     }
 
     // Combine the original query with the additional query
